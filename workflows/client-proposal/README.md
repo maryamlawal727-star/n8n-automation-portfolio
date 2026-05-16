@@ -2,7 +2,7 @@
 
 **Category:** Client Management
 **Tools:** n8n · Groq AI · Notion · Gmail
-**Trigger:** Webhook — fires instantly when intake form is submitted
+**Trigger:** Webhook — fires instantly when the intake form is submitted
 **Time Saved:** 2 hours per proposal
 **Proposal Generation Time:** Under 60 seconds
 
@@ -12,13 +12,13 @@
 
 Writing proposals is one of the most time-consuming parts of running a service business. Every prospect needs a tailored document — their name, their problem, a customised solution, pricing, and a compelling reason to say yes. Done manually, one proposal can take two to three hours. Done poorly, it loses the deal.
 
-Most service providers are either sending generic proposals that do not convert, or spending half their working week writing documents instead of delivering work.
+Most service providers are either sending generic proposals that do not convert or spending half their working week writing documents instead of delivering work.
 
 ---
 
 ## The Solution
 
-This workflow triggers the moment a prospect submits an intake form. It reads their name, business type, industry, and the problem they described — then passes all of that to Groq AI which writes a complete, tailored proposal in under 60 seconds.
+This workflow triggers the moment a prospect submits an intake form. It reads their name, business type, industry, and the problem they described — then passes all of that to Groq AI, which writes a complete, tailored proposal in under 60 seconds.
 
 The proposal is saved automatically to a Notion database and sent to the prospect via Gmail — all without the service provider lifting a finger.
 
@@ -67,16 +67,14 @@ Every proposal is personalised. Every proposal goes out fast. No more losing dea
 ## Screenshots
 
 ### Full Workflow Canvas
-![Workflow Canvas](./screenshots/canvas.png)
+![Workflow Canvas](<img width="1917" height="825" alt="client proposals (1)" src="https://github.com/user-attachments/assets/2e1549a0-9f55-4d36-8944-7f935ef9e324" />)
 
-### Groq AI Node — Proposal Generation Output
-![AI Node Output](./screenshots/ai-node.png)
+### Notion or Google Sheet — Proposals Database
+![Notion Database](<img width="1919" height="838" alt="client proposals (3)" src="https://github.com/user-attachments/assets/e3447e91-343b-4516-becc-458a5daf74a2" />)
 
-### Notion — Proposals Database
-![Notion Database](./screenshots/notion-output.png)
+### Gmail or Google Drive  — Auto-Sent Proposal Email
+![Email Output](<img width="1908" height="839" alt="client proposals (2)" src="https://github.com/user-attachments/assets/c8ae20df-dc18-415c-bdd4-66ddccb86632" />)  <img width="1134" height="639" alt="client proposal" src="https://github.com/user-attachments/assets/eb67580b-9c90-40f6-806d-8b3bd5134f39" />
 
-### Gmail — Auto-Sent Proposal Email
-![Email Output](./screenshots/email-output.png)
 
 ---
 
