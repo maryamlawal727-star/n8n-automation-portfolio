@@ -1,0 +1,931 @@
+{
+  "name": "Invoice Follow-Up & Payment Chasing",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "d8517afb-aff6-4210-bbe8-394d26c2383d",
+      "name": "Daily at 9 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "id": "c92315de-11ad-4448-965f-fca3d5f844d4",
+      "name": "Fetch Invoice Tracker",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        464,
+        304
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TEv0kc6dHVHjrLgn",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "daysOverdue",
+              "value": "={{ Math.floor(($now.toMillis() - new Date($json.dueDate).getTime()) / (1000 * 60 * 60 * 24)) }}",
+              "type": "number"
+            },
+            {
+              "id": "2",
+              "name": "rowNumber",
+              "value": "={{ $itemIndex + 2 }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "f9978f2e-8ef4-47ab-9a7a-acae324f6187",
+      "name": "Calculate Days Overdue",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        688,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{ $json.paymentStatus }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "Unpaid"
+            },
+            {
+              "leftValue": "={{ $json.daysOverdue }}",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              },
+              "rightValue": 0
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a6f4234e-e8c1-40fa-9219-b4d504fda78b",
+      "name": "Filter Overdue Unpaid",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        912,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.daysOverdue }}",
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    },
+                    "rightValue": 3
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Day 3"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.daysOverdue }}",
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    },
+                    "rightValue": 7
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Day 7"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.daysOverdue }}",
+                    "operator": {
+                      "type": "number",
+                      "operation": "gte"
+                    },
+                    "rightValue": 14
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Day 14+"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a91aea78-bac3-44ac-b6f3-70176a6353db",
+      "name": "Route by Days Overdue",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1136,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.clientEmail }}",
+        "subject": "=Friendly Reminder: Invoice {{ $json.invoiceNumber }} Payment",
+        "message": "=Hi {{ $json.clientName }},<br><br>I hope this email finds you well!<br><br>I wanted to send a quick reminder that invoice <strong>{{ $json.invoiceNumber }}</strong> for <strong>${{ $json.invoiceAmount }}</strong> was due on {{ $json.dueDate }}.<br><br>I know things can get busy, so I thought I'd reach out in case it slipped through the cracks. Payment details are attached for your convenience.<br><br>If you've already sent the payment, please disregard this message!<br><br>Thank you so much,<br>Your Team",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "406cc957-59e6-4fc4-94f1-213f4ca7bead",
+      "name": "Send Day 3 Reminder",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1424,
+        112
+      ],
+      "webhookId": "458a0c81-e4b1-44c7-93d1-41ce36055632",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "F0AQr4sUVNzDcHON",
+          "name": "Gmail OAuth2 API"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "id": "8122a145-5832-4a47-ab02-0ff3dce45e99",
+      "name": "Update Sheet - Day 3",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1712,
+        112
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TEv0kc6dHVHjrLgn",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "errorDate",
+              "value": "={{ $now.toFormat(\"yyyy-MM-dd HH:mm:ss\") }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "invoiceNumber",
+              "value": "={{ $('Route by Days Overdue').item.json.invoiceNumber }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "clientEmail",
+              "value": "={{ $('Route by Days Overdue').item.json.clientEmail }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "errorMessage",
+              "value": "={{ $json.message ?? \"Failed to send Day 3 reminder email\" }}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "stage",
+              "value": "Day 3 Reminder",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "45b9b3cf-2a81-48ad-8709-cb04c50e695d",
+      "name": "Format Day 3 Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1936,
+        112
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "5308cd19-8d18-4bc6-802e-f549e0224254",
+      "name": "Combine Errors",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2160,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.clientEmail }}",
+        "subject": "=Follow-Up: Invoice {{ $json.invoiceNumber }} Payment Required",
+        "message": "=Dear {{ $json.clientName }},<br><br>I am writing to follow up on invoice <strong>{{ $json.invoiceNumber }}</strong> for <strong>${{ $json.invoiceAmount }}</strong>, which was due on {{ $json.dueDate }}.<br><br>As of today, we have not yet received payment. Could you please confirm when we can expect payment to be processed?<br><br>If there are any issues or questions regarding this invoice, please let me know and I will be happy to assist.<br><br>Thank you for your prompt attention to this matter.<br><br>Best regards,<br>Your Team",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "4a53a79f-7b0a-49c1-a705-ddd9e4a38b46",
+      "name": "Send Day 7 Follow-Up",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1424,
+        304
+      ],
+      "webhookId": "95fc205d-ce77-412f-940a-98383c1b4899",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "F0AQr4sUVNzDcHON",
+          "name": "Gmail OAuth2 API"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "id": "1fd2a6a0-ce99-4ebd-9762-aa0e595df6b9",
+      "name": "Update Sheet - Day 7",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1712,
+        304
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TEv0kc6dHVHjrLgn",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "errorDate",
+              "value": "={{ $now.toFormat(\"yyyy-MM-dd HH:mm:ss\") }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "invoiceNumber",
+              "value": "={{ $('Route by Days Overdue').item.json.invoiceNumber }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "clientEmail",
+              "value": "={{ $('Route by Days Overdue').item.json.clientEmail }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "errorMessage",
+              "value": "={{ $json.message ?? \"Failed to send Day 7 follow-up email\" }}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "stage",
+              "value": "Day 7 Follow-Up",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b3675cb4-e51d-4cd7-a537-d7382af70dca",
+      "name": "Format Day 7 Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1936,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Draft a professional escalation email for an overdue invoice. Client: {{ $json.clientName }}, Invoice: {{ $json.invoiceNumber }}, Amount: ${{ $json.invoiceAmount }}, Days Overdue: {{ $json.daysOverdue }}. The tone should be firm but professional, requesting immediate payment and mentioning potential next steps if payment is not received.",
+        "options": {
+          "systemMessage": "You are a professional business communications assistant. Draft clear, firm but respectful escalation emails for overdue invoices."
+        }
+      },
+      "id": "735adf3a-3cec-4d38-9022-ae554200e6a8",
+      "name": "Draft Escalation Email",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1360,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "c8928201-173f-4130-835a-e0a3fb88e3e5",
+      "name": "OpenAI Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1432,
+        824
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "=URGENT: Payment Required - Invoice {{ $(\"Draft Escalation Email\").item.json.invoiceNumber }}",
+        "emailType": "html",
+        "message": "={{ $(\"Draft Escalation Email\").item.json.output }}",
+        "options": {
+          "sendTo": "={{ $(\"Draft Escalation Email\").item.json.clientEmail }}"
+        }
+      },
+      "id": "0907415f-ec30-4b78-a181-1b3cdb72a299",
+      "name": "Save Draft to Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1712,
+        600
+      ],
+      "webhookId": "5e6fc2fd-348d-4753-bc0a-413028956e14",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "F0AQr4sUVNzDcHON",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "<__PLACEHOLDER_VALUE__Your Telegram Chat ID__>",
+        "text": "=🚨 ESCALATION REQUIRED\n\nClient: {{ $(\"Save Draft to Gmail\").item.json.clientName }}\nInvoice: {{ $(\"Save Draft to Gmail\").item.json.invoiceNumber }}\nAmount: ${{ $(\"Save Draft to Gmail\").item.json.invoiceAmount }}\nDays Overdue: {{ $(\"Save Draft to Gmail\").item.json.daysOverdue }}\n\nA draft escalation email has been saved to your Gmail drafts for review.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "7e7082a9-24d3-4cdd-aa83-eb5d28e40f48",
+      "name": "Alert Owner - Escalation",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1936,
+        600
+      ],
+      "webhookId": "87a3c1b0-112f-4ef2-ac1c-38aefd1ed942",
+      "credentials": {
+        "telegramApi": {
+          "id": "pj8oPuXGrB0aOCRK",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "id": "76e45a38-0389-4764-89c9-d1d5804ecf3d",
+      "name": "Update Sheet - Day 14",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2160,
+        600
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TEv0kc6dHVHjrLgn",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "id": "f3df8320-61ba-4457-b075-b9f2672df278",
+      "name": "Log to Send Errors Tab",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2384,
+        208
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TEv0kc6dHVHjrLgn",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "<__PLACEHOLDER_VALUE__Your Telegram Chat ID__>",
+        "text": "=⚠️ EMAIL SEND FAILURE\n\nStage: {{ $(\"Log to Send Errors Tab\").item.json.stage }}\nInvoice: {{ $(\"Log to Send Errors Tab\").item.json.invoiceNumber }}\nClient: {{ $(\"Log to Send Errors Tab\").item.json.clientEmail }}\nError: {{ $(\"Log to Send Errors Tab\").item.json.errorMessage }}\nTime: {{ $(\"Log to Send Errors Tab\").item.json.errorDate }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "f488a9cb-12c4-4a71-a336-cafb21a7584d",
+      "name": "Alert Owner - Error",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2608,
+        208
+      ],
+      "webhookId": "b5deac33-80ef-41e2-a138-92d8a1bc2448",
+      "credentials": {
+        "telegramApi": {
+          "id": "pj8oPuXGrB0aOCRK",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                5
+              ],
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "7f4d5f51-a9a4-4fa6-9ba8-1f23016b7520",
+      "name": "Every Friday at 9 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        928
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "id": "542c4913-1865-4323-8dd6-d2573ffa997a",
+      "name": "Fetch All Invoices",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        464,
+        928
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TEv0kc6dHVHjrLgn",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{ $json.paymentStatus }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "Unpaid"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c469f85e-61d4-4208-acbd-9c144b9c51bc",
+      "name": "Filter Unpaid Only",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        688,
+        928
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst totalOutstanding = items.reduce((sum, item) => sum + (item.json.invoiceAmount || 0), 0);\nconst totalCount = items.length;\n\nconst stageCount = {\n  \"Reminder 1\": 0,\n  \"Reminder 2\": 0,\n  \"Escalated\": 0,\n  \"No Follow-Up\": 0\n};\n\nitems.forEach(item => {\n  const stage = item.json.followUpStage || \"No Follow-Up\";\n  if (stageCount[stage] !== undefined) {\n    stageCount[stage]++;\n  } else {\n    stageCount[\"No Follow-Up\"]++;\n  }\n});\n\nreturn [{\n  json: {\n    totalCount,\n    totalOutstanding,\n    reminder1Count: stageCount[\"Reminder 1\"],\n    reminder2Count: stageCount[\"Reminder 2\"],\n    escalatedCount: stageCount[\"Escalated\"],\n    noFollowUpCount: stageCount[\"No Follow-Up\"]\n  }\n}];"
+      },
+      "id": "44461076-6ba6-4e13-918d-b4e24270474a",
+      "name": "Calculate Summary Stats",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        928
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "<__PLACEHOLDER_VALUE__Your Telegram Chat ID__>",
+        "text": "=📊 WEEKLY INVOICE SUMMARY\n\n💰 Total Outstanding: ${{ $json.totalOutstanding }}\n📋 Total Invoices: {{ $json.totalCount }}\n\n📌 By Stage:\n• Reminder 1: {{ $json.reminder1Count }}\n• Reminder 2: {{ $json.reminder2Count }}\n• Escalated: {{ $json.escalatedCount }}\n• No Follow-Up Yet: {{ $json.noFollowUpCount }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "f287c672-f1a1-4e4c-b46a-4c1f53b550e9",
+      "name": "Send Weekly Summary",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1136,
+        928
+      ],
+      "webhookId": "6be1f972-4d5c-4535-9dff-94df6051cba6",
+      "credentials": {
+        "telegramApi": {
+          "id": "pj8oPuXGrB0aOCRK",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily at 9 AM": {
+      "main": [
+        [
+          {
+            "node": "Fetch Invoice Tracker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Invoice Tracker": {
+      "main": [
+        [
+          {
+            "node": "Calculate Days Overdue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Days Overdue": {
+      "main": [
+        [
+          {
+            "node": "Filter Overdue Unpaid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Overdue Unpaid": {
+      "main": [
+        [
+          {
+            "node": "Route by Days Overdue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Days Overdue": {
+      "main": [
+        [
+          {
+            "node": "Send Day 3 Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Day 7 Follow-Up",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Draft Escalation Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Day 3 Reminder": {
+      "main": [
+        [
+          {
+            "node": "Update Sheet - Day 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Sheet - Day 3": {
+      "main": [
+        [
+          {
+            "node": "Format Day 3 Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Day 3 Error": {
+      "main": [
+        [
+          {
+            "node": "Combine Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Errors": {
+      "main": [
+        [
+          {
+            "node": "Log to Send Errors Tab",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Day 7 Follow-Up": {
+      "main": [
+        [
+          {
+            "node": "Update Sheet - Day 7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Sheet - Day 7": {
+      "main": [
+        [
+          {
+            "node": "Format Day 7 Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Day 7 Error": {
+      "main": [
+        [
+          {
+            "node": "Combine Errors",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Draft Escalation Email": {
+      "main": [
+        [
+          {
+            "node": "Save Draft to Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Draft Escalation Email",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Draft to Gmail": {
+      "main": [
+        [
+          {
+            "node": "Alert Owner - Escalation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alert Owner - Escalation": {
+      "main": [
+        [
+          {
+            "node": "Update Sheet - Day 14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log to Send Errors Tab": {
+      "main": [
+        [
+          {
+            "node": "Alert Owner - Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every Friday at 9 AM": {
+      "main": [
+        [
+          {
+            "node": "Fetch All Invoices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch All Invoices": {
+      "main": [
+        [
+          {
+            "node": "Filter Unpaid Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Unpaid Only": {
+      "main": [
+        [
+          {
+            "node": "Calculate Summary Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Summary Stats": {
+      "main": [
+        [
+          {
+            "node": "Send Weekly Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "pinData": {},
+  "triggerCount": 0,
+  "meta": null
+}
