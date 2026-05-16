@@ -1,0 +1,906 @@
+{
+  "name": "Client Health Monitoring",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "ef88f380-e691-401c-a295-4b840887b57d",
+      "name": "Every Monday 8 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YVRV7YXJzYxphdfm1bhvSubcGOLU3otDRcnW3IA8OYk",
+          "mode": "list",
+          "cachedResultName": " MASTER GOOGLE SHEET",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YVRV7YXJzYxphdfm1bhvSubcGOLU3otDRcnW3IA8OYk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 154809572,
+          "mode": "list",
+          "cachedResultName": "Client Health Scores",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YVRV7YXJzYxphdfm1bhvSubcGOLU3otDRcnW3IA8OYk/edit#gid=154809572"
+        },
+        "options": {}
+      },
+      "id": "84698beb-0492-4079-a6d7-4e4253cd9327",
+      "name": "Pull Client Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        464,
+        560
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TEv0kc6dHVHjrLgn",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze this client health data and provide a health score:\n\nClient: {{ $('Pull Client Data').item.json['Client Name'] }}\nLast Invoice: {{ $('Pull Client Data').item.json['Last Invoice Date'] }}\nLast Email Reply: {{ $('Pull Client Data').item.json['Last Email Reply Date'] }}\nLast Meeting:{{ $('Pull Client Data').item.json['Last Meeting Date'] }}\nOpen Support Tickets: {{ $('Pull Client Data').item.json['Open Support Tickets'] }}\n\nProvide:\n1. A health score from 1-10 (1=Critical, 10=Excellent)\n2. A one-sentence reason for the score\n3. A status label: \"Healthy\" (8-10), \"At Risk\" (4-7), or \"Critical\" (1-3)",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a client success analyst. Evaluate client health based on engagement metrics. Consider recency of contact, invoice activity, and support needs. Be concise and actionable."
+        }
+      },
+      "id": "cd5f6ee2-9a8d-4ba3-920b-aa3c8f579495",
+      "name": "AI Health Scoring",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        912,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\"healthScore\":7, \"reason\": \"Regular engagement with recent invoice and email activity\", \"status\": \"Healthy\"}"
+      },
+      "id": "d677d1f5-1265-412c-b463-7eb2432e4c5e",
+      "name": "Health Score Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1048,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "clientName",
+              "type": "string",
+              "value": "={{ $(\"Pull Client Data\").item.json[\"Client Name\"] }}"
+            },
+            {
+              "id": "2",
+              "name": "rowNumber",
+              "type": "number",
+              "value": "={{ $(\"Pull Client Data\").item.json.row_number }}"
+            },
+            {
+              "id": "3",
+              "name": "healthScore",
+              "type": "number",
+              "value": "={{ $(\"AI Health Scoring\").item.json.output.healthScore }}"
+            },
+            {
+              "id": "4",
+              "name": "reason",
+              "type": "string",
+              "value": "={{ $(\"AI Health Scoring\").item.json.output.reason }}"
+            },
+            {
+              "id": "5",
+              "name": "status",
+              "type": "string",
+              "value": "={{ $(\"AI Health Scoring\").item.json.output.status }}"
+            },
+            {
+              "id": "6",
+              "name": "lastInvoiceDate",
+              "type": "string",
+              "value": "={{ $(\"Pull Client Data\").item.json[\"Last Invoice Date\"] }}"
+            },
+            {
+              "id": "7",
+              "name": "lastEmailReplyDate",
+              "type": "string",
+              "value": "={{ $(\"Pull Client Data\").item.json[\"Last Email Reply Date\"] }}"
+            },
+            {
+              "id": "8",
+              "name": "lastMeetingDate",
+              "type": "string",
+              "value": "={{ $(\"Pull Client Data\").item.json[\"Last Meeting Date\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "19c80823-7de3-44b1-8cdb-d9e4133b86bf",
+      "name": "Combine Client Score",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1264,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1nNoniSFC-ZUEX-LyzguLB01p8iWHOuZ8iKX0EPKtf9E",
+          "mode": "list",
+          "cachedResultName": "Automation  Master Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nNoniSFC-ZUEX-LyzguLB01p8iWHOuZ8iKX0EPKtf9E/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 943760319,
+          "mode": "list",
+          "cachedResultName": "Client Health Scores",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nNoniSFC-ZUEX-LyzguLB01p8iWHOuZ8iKX0EPKtf9E/edit#gid=943760319"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "Client Name": "={{ $json.clientName }}",
+            "Last Invoice Date": "={{ $json.lastInvoiceDate }}",
+            "Last Email Reply Date": "={{ $json.lastEmailReplyDate }}",
+            "Last Meeting Date": "={{ $json.lastMeetingDate }}",
+            "Health Score": "={{ $('AI Health Scoring').item.json.output.healthScore }}",
+            "Score Reason": "={{ $('AI Health Scoring').item.json.output.reason }}",
+            "Status Label": "={{ $('AI Health Scoring').item.json.output.status }}",
+            "Open Support Tickets": "={{ $('Log Incomplete Records').item.json['Open Support Tickets'] }}",
+            "Last Updated": "={{ $('Log Incomplete Records').item.json['Last Updated'] }}"
+          },
+          "matchingColumns": [
+            "Client Name"
+          ],
+          "schema": [
+            {
+              "id": "Client Name",
+              "displayName": "Client Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last Invoice Date",
+              "displayName": "Last Invoice Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Email Reply Date",
+              "displayName": "Last Email Reply Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Meeting Date",
+              "displayName": "Last Meeting Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Open Support Tickets",
+              "displayName": "Open Support Tickets",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Health Score",
+              "displayName": "Health Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Score Reason",
+              "displayName": "Score Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status Label",
+              "displayName": "Status Label",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Updated",
+              "displayName": "Last Updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "clientName",
+              "displayName": "clientName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rowNumber",
+              "displayName": "rowNumber",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "healthScore",
+              "displayName": "healthScore",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lastInvoiceDate",
+              "displayName": "lastInvoiceDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lastEmailReplyDate",
+              "displayName": "lastEmailReplyDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lastMeetingDate",
+              "displayName": "lastMeetingDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "150087ce-87e9-48ae-901a-f9427100885e",
+      "name": "Update Sheet with Score",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1488,
+        560
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TEv0kc6dHVHjrLgn",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Draft a warm, personalized re-engagement email for this at-risk client:\n\nClient: {{ $('Log Incomplete Records').item.json['Client Name'] }}\nLast Invoice: {{ $('Log Incomplete Records').item.json['Last Invoice Date'] }}\nLast Email Reply: {{ $('Log Incomplete Records').item.json['Last Email Reply Date'] }}\nLast Meeting:{{ $('Log Incomplete Records').item.json['Last Meeting Date'] }}\nHealth Score: {{ $('Combine Client Score').item.json.healthScore }}\nReason: {{ $('Combine Client Score').item.json.reason }}\n\nWrite a short, warm email from the account manager that:\n- Does NOT sound automated\n- References how long it has been since last contact\n- Offers something specific (check-in call, resource, or update)\n- Keeps it under 150 words\n- Uses a friendly, professional tone",
+        "options": {
+          "systemMessage": "You are an experienced account manager writing personalized client outreach. Your emails are warm, genuine, and action-oriented. Never use generic templates or corporate jargon."
+        }
+      },
+      "id": "6a26205e-542a-4945-844f-c0bbaf4e9a6f",
+      "name": "Draft Re-engagement Email",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1936,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "clientName",
+              "type": "string",
+              "value": "={{ $('Pull Client Data').item.json['Client Name'] }}"
+            },
+            {
+              "id": "2",
+              "name": "emailContent",
+              "type": "string",
+              "value": "={{ $json.output }}"
+            },
+            {
+              "id": "3",
+              "name": "fileName",
+              "type": "string",
+              "value": "={{ $json.clientName }} – Re-engagement Draft – {{ $now.toFormat(\"yyyy-MM-dd\") }}"
+            },
+            {
+              "id": "4",
+              "name": "healthScore",
+              "type": "number",
+              "value": "={{ $json.healthScore }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7ae6a0a2-e12b-46c4-a524-23a73c0268ea",
+      "name": "Prepare Email Draft",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2288,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $json.emailContent }}",
+        "name": "={{ $json.fileName }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "root",
+          "mode": "list",
+          "cachedResultName": "/ (Root folder)",
+          "cachedResultUrl": "https://drive.google.com/drive"
+        },
+        "options": {
+          "convertToGoogleDocument": true
+        }
+      },
+      "id": "4c05b122-1aa4-49be-84b5-b91051fe8517",
+      "name": "Save Email Draft to Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2512,
+        560
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "TiQigvkS2Qd7wVEo",
+          "name": "Google Drive OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "clientName"
+            },
+            {
+              "fieldToAggregate": "healthScore"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "37ed529d-9a75-49bd-a70d-0816c84c578b",
+      "name": "Aggregate At-Risk Clients",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2736,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const clients = $input.item.json.clientName;\nconst scores = $input.item.json.healthScore;\n\nlet message = \"🚨 *Client Health Alert*\\n\\n\";\nmessage += `${clients.length} at-risk client(s) detected:\n\n`;\n\nfor (let i = 0; i < clients.length; i++) {\n  message += `• ${clients[i]} - Score: ${scores[i]}/10\n`;\n}\n\nmessage += \"\\nRe-engagement drafts saved to Google Drive.\";\n\nreturn { message };"
+      },
+      "id": "be119be2-2ca8-4112-bc6c-cfb1e23f0234",
+      "name": "Format Telegram Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2960,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "1223363571",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "aa3748b2-4edf-4ada-a04c-d4d749885469",
+      "name": "Send Telegram Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3184,
+        560
+      ],
+      "webhookId": "1de46e36-b2be-41f8-b29d-1e18aab1f53f",
+      "credentials": {
+        "telegramApi": {
+          "id": "j6zQhkeT3t6J8dZn",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1YVRV7YXJzYxphdfm1bhvSubcGOLU3otDRcnW3IA8OYk",
+          "mode": "list",
+          "cachedResultName": " MASTER GOOGLE SHEET",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YVRV7YXJzYxphdfm1bhvSubcGOLU3otDRcnW3IA8OYk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 154809572,
+          "mode": "list",
+          "cachedResultName": "Client Health Scores",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YVRV7YXJzYxphdfm1bhvSubcGOLU3otDRcnW3IA8OYk/edit#gid=154809572"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Client Name": "={{ $('Pull Client Data').item.json['Client Name'] }}",
+            "Last Invoice Date": "={{ $('Pull Client Data').item.json['Last Invoice Date'] }}",
+            "Last Email Reply Date": "={{ $('Pull Client Data').item.json['Last Email Reply Date'] }}",
+            "Last Meeting Date": "={{ $('Pull Client Data').item.json['Last Meeting Date'] }}",
+            "Open Support Tickets": "={{ $('Pull Client Data').item.json['Open Support Tickets'] }}",
+            "Health Score": "={{ $('Pull Client Data').item.json['Health Score'] }}",
+            "Score Reason": "={{ $('Pull Client Data').item.json['Score Reason'] }}",
+            "Status Label": "={{ $('Pull Client Data').item.json['Status Label'] }}",
+            "Last Updated": "={{ $('Pull Client Data').item.json['Last Updated'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Client Name",
+              "displayName": "Client Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Invoice Date",
+              "displayName": "Last Invoice Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Email Reply Date",
+              "displayName": "Last Email Reply Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Meeting Date",
+              "displayName": "Last Meeting Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Open Support Tickets",
+              "displayName": "Open Support Tickets",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Health Score",
+              "displayName": "Health Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Score Reason",
+              "displayName": "Score Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status Label",
+              "displayName": "Status Label",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Updated",
+              "displayName": "Last Updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "b8121a29-3bf9-4dba-afe7-e24de0ccbdb1",
+      "name": "Log Incomplete Records",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        688,
+        560
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TEv0kc6dHVHjrLgn",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a3e86230-f4c5-48c5-8ae9-e58d9138ecc3",
+              "leftValue": "={{ $('AI Health Scoring').item.json.output.healthScore }}",
+              "rightValue": 5,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1712,
+        560
+      ],
+      "id": "fa2a2167-9f1b-44a1-9f0c-ca9341def887",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "5fd08191-49ab-4622-912a-8703bed91e0d",
+      "name": "OpenAI Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        928,
+        784
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "sTPK75vzEJ1dR8fn",
+          "name": "OpenAI account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every Monday 8 AM": {
+      "main": [
+        [
+          {
+            "node": "Pull Client Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull Client Data": {
+      "main": [
+        [
+          {
+            "node": "Log Incomplete Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Health Scoring": {
+      "main": [
+        [
+          {
+            "node": "Combine Client Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Health Score Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Health Scoring",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Client Score": {
+      "main": [
+        [
+          {
+            "node": "Update Sheet with Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Sheet with Score": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft Re-engagement Email": {
+      "main": [
+        [
+          {
+            "node": "Prepare Email Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Email Draft": {
+      "main": [
+        [
+          {
+            "node": "Save Email Draft to Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Email Draft to Drive": {
+      "main": [
+        [
+          {
+            "node": "Aggregate At-Risk Clients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate At-Risk Clients": {
+      "main": [
+        [
+          {
+            "node": "Format Telegram Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Telegram Message": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Incomplete Records": {
+      "main": [
+        [
+          {
+            "node": "AI Health Scoring",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Draft Re-engagement Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Health Scoring",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Draft Re-engagement Email",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "pinData": {},
+  "triggerCount": 0,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
