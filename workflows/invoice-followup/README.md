@@ -1,4 +1,4 @@
-# Invoice Follow-Up & Payment Chasing
+[Invoice_Follow_Up_Payment_Chasing.json](https://github.com/user-attachments/files/27856349/Invoice_Follow_Up_Payment_Chasing.json)# Invoice Follow-Up & Payment Chasing
 
 **Category:** Revenue & Finance
 **Tools:** n8n · Groq AI · Gmail · Google Sheets
@@ -81,7 +81,7 @@ No manual writing. No awkward conversations. No invoices slipping through the cr
 
 ## How to Use This Workflow
 
-1. Download `workflow.json` from this folder
+1. Download `[Uploading Invoice_Follow_Up_Payment_Chasing.json…]()` from this folder
 2. Open your n8n instance
 3. Click **Import** and select the file
 4. Connect your Google Sheets, Gmail, and Groq credentials
