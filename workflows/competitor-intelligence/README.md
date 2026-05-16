@@ -10,7 +10,7 @@
 
 ## The Problem
 
-Most small businesses have no idea what their competitors are doing until it is too late — a competitor drops their prices, launches a new service, or starts targeting the exact same audience, and the business owner finds out weeks later by accident.
+Most small businesses have no idea what their competitors are doing until it is too late — a competitor drops their prices, launches a new service, or starts targeting the same audience, and the business owner finds out weeks later by accident.
 
 Manual competitor research is exhausting and inconsistent. It gets deprioritised when things get busy, which is exactly when staying informed matters most.
 
@@ -18,7 +18,7 @@ Manual competitor research is exhausting and inconsistent. It gets deprioritised
 
 ## The Solution
 
-This workflow runs every morning and visits each competitor's website automatically. It checks for changes — new pages, updated pricing, new services, new blog content, job listings — and passes everything it finds to Groq AI which writes a concise intelligence summary for each competitor.
+This workflow runs every morning and visits each competitor's website automatically. It checks for changes — new pages, updated pricing, new services, new blog content, job listings — and passes everything it finds to Groq AI, which writes a concise intelligence summary for each competitor.
 
 If a significant change is detected, an alert is sent instantly to Telegram with the competitor name, what changed, what it means, and a recommended action. Everything is also logged in Google Sheets for a full historical record.
 
@@ -56,7 +56,7 @@ The business owner wakes up every morning already knowing what their competitors
 ## Client Scenario
 
 **Business:** Ironside Marketing — a Canadian digital marketing agency
-**Problem:** The founder had no system for tracking what competitors were doing. She found out a direct competitor had launched a done-for-you service package — identical to hers — only when a prospect mentioned it during a sales call. By then the competitor had already been running it for three weeks.
+**Problem:** The founder had no system for tracking what competitors were doing. She found out a direct competitor had launched a done-for-you service package — identical to hers — only when a prospect mentioned it during a sales call. By then, the competitor had already been running it for three weeks.
 
 **After this workflow was deployed:**
 - Five competitors are monitored every single morning automatically
@@ -69,16 +69,16 @@ The business owner wakes up every morning already knowing what their competitors
 ## Screenshots
 
 ### Full Workflow Canvas
-![Workflow Canvas](./screenshots/canvas.png)
+![Workflow Canvas](<img width="1919" height="821" alt="Competitor Intelligence Monitor (2)" src="https://github.com/user-attachments/assets/53d4f5ec-4c34-42b7-ab7f-5fe0587b1eed" />)
 
 ### Groq AI Node — Intelligence Summary Output
-![AI Node Output](./screenshots/ai-node.png)
+![AI Node Output](<img width="1898" height="790" alt="Competitor Intelligence Monitor (1)" src="https://github.com/user-attachments/assets/6e70d97c-3bfa-422d-be2c-43be1afb497c" />)
 
 ### Google Sheets — Intelligence Log
-![Intelligence Log](./screenshots/sheet.png)
+![Intelligence Log]<img width="1914" height="830" alt="Competitor Intelligence Monitor (3)" src="https://github.com/user-attachments/assets/8d62402c-c155-4887-a4c2-14496c2316f7" />)
 
-### Telegram — Competitor Alert Message
-![Telegram Alert](./screenshots/telegram-alert.png)
+### Telegram or email — Competitor Alert Message
+![Telegram Alert](<img width="1858" height="596" alt="Competitor Intelligence Monitor (4)" src="https://github.com/user-attachments/assets/264e18d0-30ef-4000-9143-1f5b6669745a" />g)
 
 ---
 
