@@ -1,0 +1,611 @@
+{
+  "name": "Client Proposal Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "={{ $json.website_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text",
+              "outputPropertyName": "websiteHtml"
+            }
+          }
+        }
+      },
+      "id": "81707b7d-ebda-4b19-bef9-88365c06d5b0",
+      "name": "Fetch Website Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        352,
+        -32
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Google Sheets Trigger').item.json['  Website URL  '] }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              },
+              "id": "ce2b77c1-19e2-4e1c-bec1-1a414c93c5e8"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "10fc979c-7d65-4b93-b687-c3924756d44f",
+      "name": "Check Website Fetch",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        743.217777777778,
+        206.40888888888895
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the following website content and provide a summary:\n\nWebsite: {{ $json.website_url }}\nContent: {{ $json.websiteHtml }}\n\nPlease provide:\n1. What the business does\n2. Who their target audience appears to be\n3. What their current biggest operational challenge likely is\n4. What tone and language style they use in their brand\n\nFormat your response as a structured summary.",
+        "options": {
+          "systemMessage": "You are a business analyst expert. Analyze website content and provide structured insights about businesses."
+        }
+      },
+      "id": "c371366c-485d-4070-8dff-ef9a7e496afe",
+      "name": "AI Research Summary",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        967.217777777778,
+        82.40888888888894
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "client_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "business_name",
+              "value": "={{ $json.business_name }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "website_url",
+              "value": "={{ $json.website_url }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "service_needed",
+              "value": "={{ $json.service_needed }}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "budget_range",
+              "value": "={{ $json.budget_range }}",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "timeline",
+              "value": "={{ $json.timeline }}",
+              "type": "string"
+            },
+            {
+              "id": "7",
+              "name": "research_summary",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "8",
+              "name": "manual_research_note",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "51fe21df-d2e9-4fd2-a6be-057567647b54",
+      "name": "Prepare Data With Research",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1319.2177777777779,
+        82.40888888888894
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create a comprehensive client proposal document with the following information:\n\nClient Name: {{ $json.client_name }}\nBusiness Name: {{ $json.business_name }}\nWebsite: {{ $json.website_url }}\nService Requested: {{ $json.service_needed }}\nBudget Range: {{ $json.budget_range }}\nTimeline: {{ $json.timeline }}\n\nResearch Summary:\n{{ $json.research_summary }}\n\n{{ $json.manual_research_note }}\n\nPlease write a full client proposal document that includes:\n1. A personalized opening paragraph that references specifics about their business\n2. A clear problem statement\n3. A proposed solution with 3 phases\n4. Deliverables per phase\n5. A timeline aligned to their stated timeline\n6. Pricing aligned to their stated budget range\n7. A strong closing paragraph\n\nFormat the proposal with proper headings and sections. Make it professional and compelling.",
+        "options": {
+          "systemMessage": "You are a professional proposal writer. Create compelling, well-structured client proposals that are personalized and persuasive."
+        }
+      },
+      "id": "8352015d-424c-406d-adf1-7412ccddf49f",
+      "name": "Generate Proposal",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1552,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "client_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "business_name",
+              "value": "={{ $json.business_name }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "website_url",
+              "value": "={{ $json.website_url }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "service_needed",
+              "value": "={{ $json.service_needed }}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "budget_range",
+              "value": "={{ $json.budget_range }}",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "timeline",
+              "value": "={{ $json.timeline }}",
+              "type": "string"
+            },
+            {
+              "id": "7",
+              "name": "research_summary",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "8",
+              "name": "manual_research_note",
+              "value": "NOTE: Manual research recommended - website could not be accessed automatically.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2051ab3d-28fa-4ef3-aa35-3b4cc935c970",
+      "name": "Prepare Data Without Research",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1319.2177777777779,
+        330.40888888888895
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "Client Proposals",
+        "limit": 1,
+        "filter": {
+          "whatToSearch": "folders"
+        },
+        "options": {}
+      },
+      "id": "42700050-f8ee-4683-8cb2-18edfaac2acf",
+      "name": "Find Client Proposals Folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1895.2177777777779,
+        206.40888888888895
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "TiQigvkS2Qd7wVEo",
+          "name": "Google Drive OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "folderId": "={{ $(\"Find Client Proposals Folder\").item.json.id }}",
+        "title": "={{ $(\"Generate Proposal\").item.json.client_name }} – Proposal – {{ $now.toFormat(\"yyyy-MM-dd\") }}"
+      },
+      "id": "cb400ffc-e176-48f0-a463-b83e77987c42",
+      "name": "Create Google Doc",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        2119.217777777778,
+        206.40888888888895
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "mKcZn5aai3h7i8en",
+          "name": "Google Docs OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "object": "={{ \"text\" }}",
+              "action": "={{ \"insert\" }}",
+              "insertSegment": "={{ \"body\" }}",
+              "locationChoice": "={{ \"endOfSegmentLocation\" }}",
+              "index": 0,
+              "text": "={{ $(\"Generate Proposal\").item.json.output }}"
+            }
+          ]
+        }
+      },
+      "id": "261f70a6-cbba-4d32-8bec-31a03e7917d4",
+      "name": "Update Google Doc Content",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        2343.217777777778,
+        206.40888888888895
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "EVRUiIJP8Bj1Epnt",
+          "name": "Google Docs OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "1223363571",
+        "text": "=🎉 New Client Proposal Generated!\n\nClient: {{ $(\"Generate Proposal\").item.json.client_name }}\nBusiness: {{ $(\"Generate Proposal\").item.json.business_name }}\nWebsite: {{ $(\"Generate Proposal\").item.json.website_url }}\n\nView Proposal: https://docs.google.com/document/d/{{ $(\"Create Google Doc\").item.json.id }}",
+        "additionalFields": {}
+      },
+      "id": "6f39bd17-03b9-41e6-ac4e-b85db7c4e314",
+      "name": "Send Telegram Notification",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2567.217777777778,
+        110.40888888888894
+      ],
+      "webhookId": "0be27c14-d9f0-402e-952f-792dbb854c84",
+      "credentials": {
+        "telegramApi": {
+          "id": "j6zQhkeT3t6J8dZn",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1nNoniSFC-ZUEX-LyzguLB01p8iWHOuZ8iKX0EPKtf9E",
+          "mode": "list",
+          "cachedResultName": "Automation  Master Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nNoniSFC-ZUEX-LyzguLB01p8iWHOuZ8iKX0EPKtf9E/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Proposal Tracker"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "9e57f3af-fe02-46dc-bfb5-0332c243a354",
+      "name": "Log to Proposal Tracker",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2567.217777777778,
+        302.40888888888895
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TEv0kc6dHVHjrLgn",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1039.2177777777779,
+        306.40888888888895
+      ],
+      "id": "ab093909-c969-46de-8970-14a0d6ecabaf",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "sTPK75vzEJ1dR8fn",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1616,
+        432
+      ],
+      "id": "8dfe25f0-17fe-4701-9e6b-4185b7a980aa",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "sTPK75vzEJ1dR8fn",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1yjDHPuItovB_EM0MTK1EYndBj2t71MoAM8Jr8DAZDaY",
+          "mode": "list",
+          "cachedResultName": "Untitled form (Responses)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1yjDHPuItovB_EM0MTK1EYndBj2t71MoAM8Jr8DAZDaY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 434802500,
+          "mode": "list",
+          "cachedResultName": "Form Responses 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1yjDHPuItovB_EM0MTK1EYndBj2t71MoAM8Jr8DAZDaY/edit#gid=434802500"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        295.217777777778,
+        206.40888888888895
+      ],
+      "id": "09aa553e-e408-4a90-bdf4-816867c57780",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "qvDqmUJEbUEIlVN9",
+          "name": "Google Sheets Trigger OAuth2 API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Fetch Website Content": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Check Website Fetch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Website Fetch": {
+      "main": [
+        [
+          {
+            "node": "AI Research Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Data Without Research",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Research Summary": {
+      "main": [
+        [
+          {
+            "node": "Prepare Data With Research",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Data With Research": {
+      "main": [
+        [
+          {
+            "node": "Generate Proposal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Proposal": {
+      "main": [
+        [
+          {
+            "node": "Find Client Proposals Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Data Without Research": {
+      "main": [
+        [
+          {
+            "node": "Generate Proposal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Client Proposals Folder": {
+      "main": [
+        [
+          {
+            "node": "Create Google Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Google Doc": {
+      "main": [
+        [
+          {
+            "node": "Update Google Doc Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Google Doc Content": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Notification",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log to Proposal Tracker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Research Summary",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Proposal",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Website Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "pinData": {},
+  "triggerCount": 0,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
