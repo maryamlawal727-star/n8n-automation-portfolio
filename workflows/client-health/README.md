@@ -73,16 +73,13 @@ Every result is logged in Google Sheets, giving a full weekly health history acr
 ## Screenshots
 
 ### Full Workflow Canvas
-![Workflow Canvas](./screenshots/canvas.png)
-
-### Groq AI Node — Re-engagement Email Output
-![AI Node Output](./screenshots/ai-node.png)
+![Workflow Canvas](<img width="1919" height="843" alt="Client health canvas png (1)" src="https://github.com/user-attachments/assets/65a47343-6a05-49cf-be7a-761b6b3ebf8d" />)
 
 ### Google Sheets — Client Health Dashboard
-![Health Dashboard](./screenshots/sheet.png)
+![Health Dashboard](<img width="1919" height="848" alt="Client health sheet png (2)" src="https://github.com/user-attachments/assets/599ed30f-fe10-4ede-a1b3-c618d08c6359" />)
 
 ### Telegram — Urgent Client Alert
-![Telegram Alert](./screenshots/telegram-alert.png)
+![Telegram Alert](<img width="1145" height="249" alt="Client health (3)" src="https://github.com/user-attachments/assets/cf2a5b2c-f108-41b7-9a13-3daae28854d5" />)
 
 ---
 
