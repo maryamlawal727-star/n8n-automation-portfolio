@@ -97,9 +97,7 @@ No manual writing. No awkward conversations. No invoices slipping through the cr
 | `workflow.json` | Full importable n8n workflow |
 | `README.md` | This documentation |
 | `screenshots/canvas.png` | Full workflow canvas |
-| `screenshots/ai-node.png` | Groq AI node output |
 | `screenshots/sheet.png` | Google Sheets tracker |
-| `screenshots/email-output.png` | Sample generated email |
 ---
 
 *Built with n8n · Powered by Groq AI · Part of the Ameerah Lawal Automation Portfolio*
