@@ -16,13 +16,13 @@ A busy founder, consultant, or agency owner can receive anywhere from 50 to 150 
 
 ## The Solution
 
-This workflow runs every hour and reads incoming emails automatically. It passes each email to Groq AI which categorises it, assigns a priority level, writes a one-line summary, and determines what action to take. The workflow then applies Gmail labels, archives low-priority mail, flags urgent messages, and logs everything into a Google Sheet for full visibility.
+This workflow runs every hour and reads incoming emails automatically. It passes each email to Groq AI, which categorises it, assigns a priority level, writes a one-line summary, and determines what action to take. The workflow then applies Gmail labels, archives low-priority mail, flags urgent messages, and logs everything into a Google Sheet for full visibility.
 
 The inbox goes from chaotic to organised without the owner touching a single email manually.
 
-- Client emails flagged and moved to priority folder instantly
+- Client emails are flagged and moved to the priority folder instantly
 - Newsletters and promotions archived automatically
-- Spam and irrelevant mail deleted without human input
+- Spam and irrelevant mail are deleted without human input
 - AI drafts a reply for high-priority emails and saves it to drafts
 - Full triage log updated in Google Sheets after every run
 
@@ -72,16 +72,13 @@ The inbox goes from chaotic to organised without the owner touching a single ema
 ## Screenshots
 
 ### Full Workflow Canvas
-![Workflow Canvas](./screenshots/canvas.png)
-
-### Groq AI Node — Categorisation Output
-![AI Node Output](./screenshots/ai-node.png)
+![Workflow Canvas](<img width="1892" height="852" alt="Gmail Inbox Triage   Management (3)" src="https://github.com/user-attachments/assets/82cda525-be05-47f9-8975-35f0d040c094" />)
 
 ### Google Sheets — Triage Log
-![Triage Log](./screenshots/sheet.png)
+![Triage Log](<img width="1919" height="835" alt="Gmail Inbox Triage   Management (1)" src="https://github.com/user-attachments/assets/04fe95a4-96dd-4691-8325-e4213d527f8a" />)
 
 ### Gmail — Labelled and Organised Inbox
-![Gmail Output](./screenshots/gmail-output.png)
+![Gmail Output](<img width="1919" height="836" alt="Gmail Inbox Triage   Management (2)" src="https://github.com/user-attachments/assets/d7d62eae-1113-489c-aaaa-7a74e6b5143b" />)
 
 ---
 
