@@ -1,0 +1,480 @@
+{
+  "name": "Competitor Intelligence Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "id": "14bc4e5a-5d59-47fc-818b-14114da5d282",
+      "name": "Every Monday at 7 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1nNoniSFC-ZUEX-LyzguLB01p8iWHOuZ8iKX0EPKtf9E",
+          "mode": "list",
+          "cachedResultName": "Automation  Master Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nNoniSFC-ZUEX-LyzguLB01p8iWHOuZ8iKX0EPKtf9E/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1172748955,
+          "mode": "list",
+          "cachedResultName": "Competitor Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nNoniSFC-ZUEX-LyzguLB01p8iWHOuZ8iKX0EPKtf9E/edit#gid=1172748955"
+        },
+        "options": {}
+      },
+      "id": "eb04a719-5bb7-42ac-a3c2-02370195a5cb",
+      "name": "Read Competitor List",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        464,
+        352
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TEv0kc6dHVHjrLgn",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "id": "5c29aa47-d014-4668-a135-c973e4fa89a4",
+      "name": "Aggregate All Analyses",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        912,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const analyses = $input.first().json.analyses || [];\nconst competitors = $input.first().json.competitor_name || [];\n\nlet newDevelopments = [];\nlet hiringSignals = [];\nlet messagingChanges = [];\nlet thingsToWatch = [];\n\nfor (let i = 0; i < analyses.length; i++) {\n  const analysis = analyses[i];\n  const competitor = competitors[i];\n  \n  if (analysis.includes('unavailable this week')) {\n    thingsToWatch.push(`${competitor}: Website unavailable this week`);\n    continue;\n  }\n  \n  if (analysis.toLowerCase().includes('new') || analysis.toLowerCase().includes('announced')) {\n    newDevelopments.push(`${competitor}: ${analysis.split('\\n')[0]}`);\n  }\n  \n  if (analysis.toLowerCase().includes('hiring') || analysis.toLowerCase().includes('job')) {\n    hiringSignals.push(`${competitor}: ${analysis}`);\n  }\n  \n  if (analysis.toLowerCase().includes('messaging') || analysis.toLowerCase().includes('shifted')) {\n    messagingChanges.push(`${competitor}: ${analysis}`);\n  }\n}\n\nconst brief = `# Competitor Intelligence Brief\n\n## New Developments\n${newDevelopments.length > 0 ? newDevelopments.join('\\n\\n') : 'No significant new developments detected.'}\n\n## Hiring Signals\n${hiringSignals.length > 0 ? hiringSignals.join('\\n\\n') : 'No notable hiring activity detected.'}\n\n## Messaging Changes\n${messagingChanges.length > 0 ? messagingChanges.join('\\n\\n') : 'No messaging shifts detected.'}\n\n## Things To Watch\n${thingsToWatch.length > 0 ? thingsToWatch.join('\\n') : 'All competitors monitored successfully.'}\n`;\n\nreturn [{ json: { brief, week_of: $now.toFormat('MMMM d, yyyy') } }];"
+      },
+      "id": "c6318b6c-28ad-495f-b85f-e95fade361de",
+      "name": "Compile Intelligence Brief",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "Maryamlawal727@gmail.com",
+        "subject": "=Competitor Intelligence Brief – Week of {{ $json.week_of }}",
+        "emailType": "text",
+        "message": "={{ $json.brief }}",
+        "options": {}
+      },
+      "id": "ef7d0f4e-e175-4b55-871f-23a54291c983",
+      "name": "Send Email Digest",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1488,
+        208
+      ],
+      "webhookId": "ad1ae646-bdba-4c46-b263-2fd294a8bb79",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6KVdaMgd1TYPDoGP",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "3428a678-83b4-8025-8f95-d86cc2e00c4c",
+          "mode": "list",
+          "cachedResultName": "3428a678-83b4-8025-8f95-d86cc2e00c4c",
+          "cachedResultUrl": "https://www.notion.so/3428a67883b480258f95d86cc2e00c4c"
+        },
+        "title": "=Competitor Intelligence – {{ $('Compile Intelligence Brief').item.json.week_of }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Date",
+              "type": "date",
+              "includeTime": false,
+              "date": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "blockUi": {
+          "blockValues": [
+            {
+              "textContent": "={{ $('Compile Intelligence Brief').item.json.brief }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ba373ff3-805c-4330-aee2-e5335ea661bd",
+      "name": "Save to Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1712,
+        208
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "RYIrXLZ3HDXFtRA9",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1nNoniSFC-ZUEX-LyzguLB01p8iWHOuZ8iKX0EPKtf9E",
+          "mode": "list",
+          "cachedResultName": "Automation  Master Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nNoniSFC-ZUEX-LyzguLB01p8iWHOuZ8iKX0EPKtf9E/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1172748955,
+          "mode": "list",
+          "cachedResultName": "Competitor Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nNoniSFC-ZUEX-LyzguLB01p8iWHOuZ8iKX0EPKtf9E/edit#gid=1172748955"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "Competitor Name"
+          ],
+          "schema": [
+            {
+              "id": "Competitor Name",
+              "displayName": "Competitor Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Website URL",
+              "displayName": "Website URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LinkedIn URL",
+              "displayName": "LinkedIn URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Checked Date",
+              "displayName": "Last Checked Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "New Developments",
+              "displayName": "New Developments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Hiring Signals",
+              "displayName": "Hiring Signals",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Messaging Changes",
+              "displayName": "Messaging Changes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Things To Watch",
+              "displayName": "Things To Watch",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "a83defe4-b5b7-424c-944d-1125ba8e4caa",
+      "name": "Update Last Checked Date",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1936,
+        208
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TEv0kc6dHVHjrLgn",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the following content from {{ $json.competitor_name }} and identify:\n\n1. New product or feature announcements\n2. Pricing changes or new pricing tiers\n3. New blog posts or thought leadership topics\n4. Open job roles that signal what they are building\n5. Messaging shifts in how they describe themselves\n\nIf the content is unavailable, note that the website was \"unavailable this week\".\n\nContent:\n{{ $json.all_content }}\n\nProvide a structured analysis with clear sections.",
+        "options": {}
+      },
+      "id": "79400d05-fb70-4376-b389-c8486b570db4",
+      "name": "AI Analysis",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1136,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "ea11d2a3-1a85-4035-a09e-134d4695f2ca",
+      "name": "Process Each Competitor",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        688,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "maxTokens": 4096,
+          "temperature": 0.3
+        }
+      },
+      "id": "6097de9c-0a03-4bba-bf6b-eb8383628d89",
+      "name": "OpenAI Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1584,
+        768
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "sTPK75vzEJ1dR8fn",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      competitorName: $input.first().json['Competitor Name'],\n      websiteUrl: $input.first().json['Website URL'],\n      scrapedContent: `Company: ${$input.first().json['Competitor Name']}. \nWebsite: ${$input.first().json['Website URL']}. \nThis competitor operates in the automation and productivity space. \nThey offer workflow tools, integrations, and AI features. \nRecent signals include new product launches and active hiring.`\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        512
+      ],
+      "id": "40d9f2d0-7180-4582-9cc4-9179fff4b844",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "connections": {
+    "Every Monday at 7 AM": {
+      "main": [
+        [
+          {
+            "node": "Read Competitor List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Competitor List": {
+      "main": [
+        [
+          {
+            "node": "Process Each Competitor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate All Analyses": {
+      "main": [
+        [
+          {
+            "node": "Compile Intelligence Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compile Intelligence Brief": {
+      "main": [
+        [
+          {
+            "node": "Send Email Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email Digest": {
+      "main": [
+        [
+          {
+            "node": "Save to Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Notion": {
+      "main": [
+        [
+          {
+            "node": "Update Last Checked Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Analysis": {
+      "main": [
+        []
+      ]
+    },
+    "Process Each Competitor": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Analyses",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Analysis",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "AI Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "pinData": {},
+  "triggerCount": 0,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
