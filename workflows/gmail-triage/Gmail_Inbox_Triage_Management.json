@@ -1,0 +1,548 @@
+{
+  "name": "Gmail Inbox Triage & Management",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "162a3192-cce3-49f6-8b93-d941e963293b",
+      "name": "Daily at 8:00 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": true,
+        "filters": {
+          "readStatus": "unread",
+          "receivedAfter": "={{ $now.minus({ days: 1 }).toISO() }}"
+        }
+      },
+      "id": "260f6836-4532-4376-a033-3abc5ee23795",
+      "name": "Fetch Unread Emails",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        608
+      ],
+      "webhookId": "d897b213-f5e2-4abe-848d-671b98d0411b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "F0AQr4sUVNzDcHON",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze this email and categorize it.\n\nFrom: {{ $json.from.text }}\nSubject: {{ $json.subject }}\nDate: {{ $json.date }}\n\nAssign:\n1. category: Must be one of: \"Urgent Client\", \"Invoice or Payment\", \"Partnership or Opportunity\", \"Cold Outreach\", \"Newsletter or Marketing\", \"Internal Team\", \"Other\"\n2. priority: Must be one of: \"High\", \"Medium\", \"Low\"\n3. summary: One sentence describing what the email is about and what action is needed",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an email triage assistant. Categorize emails accurately based on their content. Always return valid JSON with category, priority, and summary fields.",
+          "maxIterations": 3
+        }
+      },
+      "id": "14b77ffe-b2b7-4a77-b578-07074ccc5de0",
+      "name": "Categorize Email",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        688,
+        608
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "model": "llama3-70b-8192",
+        "options": {
+          "maxTokensToSample": 1000,
+          "temperature": 0.1
+        }
+      },
+      "id": "dbad88ef-3659-48cd-ba9e-f80286d6e97f",
+      "name": "Groq Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        696,
+        832
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": {
+          "category": "Urgent Client",
+          "priority": "High",
+          "summary": "Client needs urgent response regarding project deadline"
+        }
+      },
+      "id": "30e09d34-447e-4a42-953f-b798cebcb614",
+      "name": "Structured Output",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        824,
+        832
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "emailId",
+              "type": "string",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "id": "2",
+              "name": "threadId",
+              "type": "string",
+              "value": "={{ $json.threadId }}"
+            },
+            {
+              "id": "3",
+              "name": "subject",
+              "type": "string",
+              "value": "={{ $json.subject }}"
+            },
+            {
+              "id": "4",
+              "name": "senderName",
+              "type": "string",
+              "value": "={{ $json.from?.value?.[0]?.name ?? \"Unknown\" }}"
+            },
+            {
+              "id": "5",
+              "name": "senderEmail",
+              "type": "string",
+              "value": "={{ $json.from?.value?.[0]?.address ?? \"unknown@email.com\" }}"
+            },
+            {
+              "id": "6",
+              "name": "date",
+              "type": "string",
+              "value": "={{ $json.date }}"
+            },
+            {
+              "id": "7",
+              "name": "category",
+              "type": "string",
+              "value": "={{ $json.output?.category ?? \"Uncategorized - Review Manually\" }}"
+            },
+            {
+              "id": "8",
+              "name": "priority",
+              "type": "string",
+              "value": "={{ $json.output?.priority ?? \"Medium\" }}"
+            },
+            {
+              "id": "9",
+              "name": "summary",
+              "type": "string",
+              "value": "={{ $json.output?.summary ?? \"AI categorization failed - manual review needed\" }}"
+            },
+            {
+              "id": "10",
+              "name": "labelIds",
+              "type": "array",
+              "value": "={{ $json.labelIds }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "53f4a577-a366-4e71-bbdb-310e4a76295d",
+      "name": "Prepare Email Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1040,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": [
+          "={{ $json.category }}"
+        ]
+      },
+      "id": "89a19df7-5353-4185-b3e9-bf73afedb3e2",
+      "name": "Apply Gmail Label",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1264,
+        608
+      ],
+      "webhookId": "04b6a0b5-b2ba-42e2-bb5d-5a21c15eda2a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "F0AQr4sUVNzDcHON",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{ $json.priority }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "High"
+            },
+            {
+              "leftValue": "={{ $json.category }}",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              },
+              "rightValue": "^(Urgent Client|Invoice or Payment)$"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "45782d1b-38b5-43df-9ad5-2edbb67d4123",
+      "name": "Needs Draft Reply?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1488,
+        312
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Draft a professional, context-aware reply to this email.\n\nFrom: {{ $json.senderName }} <{{ $json.senderEmail }}>\nSubject: {{ $json.subject }}\nCategory: {{ $json.category }}\nSummary: {{ $json.summary }}\n\nWrite a brief, professional response that acknowledges the email and indicates we will follow up soon. Keep it under 100 words.",
+        "options": {
+          "systemMessage": "You are a professional email assistant. Draft polite, concise replies that acknowledge receipt and indicate follow-up."
+        }
+      },
+      "id": "73c8fafa-2e6f-430a-9ad8-610a706b408b",
+      "name": "Generate Draft Reply",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1712,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama3-70b-8192",
+        "options": {
+          "maxTokensToSample": 500,
+          "temperature": 0.3
+        }
+      },
+      "id": "b9cecd77-efc4-49f1-9227-4d27ddd9356d",
+      "name": "Draft Reply Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1784,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ \"Re: \" + $json.subject }}",
+        "message": "={{ $json.output }}",
+        "options": {
+          "threadId": "={{ $json.threadId }}",
+          "sendTo": "={{ $json.senderEmail }}"
+        }
+      },
+      "id": "730de94f-0a82-4735-8cbc-9bf57446312d",
+      "name": "Save Draft to Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2064,
+        312
+      ],
+      "webhookId": "e74749ed-3f8e-4225-98c1-9bbe20e19811",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "F0AQr4sUVNzDcHON",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "emails",
+        "include": "specifiedFields",
+        "fieldsToInclude": "emailId, subject, senderName, senderEmail, category, priority, summary, date",
+        "options": {}
+      },
+      "id": "1c3e8d71-9e86-4fbe-bb27-5f18cecc5e86",
+      "name": "Aggregate All Emails",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1488,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const emails = $input.first().json.emails || [];\n\n// Count by category\nconst categoryCounts = {};\nemails.forEach(email => {\n  categoryCounts[email.category] = (categoryCounts[email.category] || 0) + 1;\n});\n\n// Filter high priority emails needing attention\nconst actionItems = emails.filter(e => \n  e.priority === 'High' || \n  e.category === 'Urgent Client' || \n  e.category === 'Invoice or Payment'\n);\n\n// Format digest\nlet digest = `📧 Your Inbox Briefing – ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}\n\n`;\ndigest += `📊 SUMMARY\n`;\ndigest += `Total emails received: ${emails.length}\n\n`;\n\ndigest += `📁 BREAKDOWN BY CATEGORY\n`;\nObject.entries(categoryCounts).forEach(([category, count]) => {\n  digest += `• ${category}: ${count}\n`;\n});\n\ndigest += `\n⚡ PRIORITY ACTION ITEMS (${actionItems.length})\n`;\nif (actionItems.length === 0) {\n  digest += `No urgent items requiring immediate attention.\n`;\n} else {\n  actionItems.forEach((email, idx) => {\n    digest += `\n${idx + 1}. [${email.priority}] ${email.subject}\n`;\n    digest += `   From: ${email.senderName} <${email.senderEmail}>\n`;\n    digest += `   Category: ${email.category}\n`;\n    digest += `   Summary: ${email.summary}\n`;\n  });\n}\n\ndigest += `\n\n📋 ALL EMAILS\n`;\nemails.forEach((email, idx) => {\n  digest += `\n${idx + 1}. [${email.priority}] ${email.subject}\n`;\n  digest += `   From: ${email.senderName}\n`;\n  digest += `   Category: ${email.category}\n`;\n  digest += `   Summary: ${email.summary}\n`;\n});\n\nreturn [{ json: { digest, totalEmails: emails.length, actionItemsCount: actionItems.length, emails } }];"
+      },
+      "id": "73c3c15a-2b39-440f-8736-27c64e73a4a4",
+      "name": "Create Daily Digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1776,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "<__PLACEHOLDER_VALUE__your-email@example.com__>",
+        "subject": "={{ \"Your Inbox Briefing – \" + $now.toFormat(\"MMMM d, yyyy\") }}",
+        "emailType": "text",
+        "message": "={{ $json.digest }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "7670f189-7a47-4277-95b6-6c866863513e",
+      "name": "Send Daily Digest",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2064,
+        608
+      ],
+      "webhookId": "592fe5d7-6ded-4d56-a4b6-0d1d53234be4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "F0AQr4sUVNzDcHON",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Inbox Log"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $now.toFormat(\"yyyy-MM-dd HH:mm:ss\") }}",
+            "sender": "={{ $json.senderName }}",
+            "subject": "={{ $json.subject }}",
+            "category": "={{ $json.category }}",
+            "priority": "={{ $json.priority }}",
+            "summary": "={{ $json.summary }}"
+          }
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      },
+      "id": "dedf5c3d-b1c4-4d06-bcc3-61e472f960b8",
+      "name": "Log to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1488,
+        800
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TEv0kc6dHVHjrLgn",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily at 8:00 AM": {
+      "main": [
+        [
+          {
+            "node": "Fetch Unread Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Unread Emails": {
+      "main": [
+        [
+          {
+            "node": "Categorize Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Categorize Email": {
+      "main": [
+        [
+          {
+            "node": "Prepare Email Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Categorize Email",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Categorize Email",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Email Data": {
+      "main": [
+        [
+          {
+            "node": "Apply Gmail Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Gmail Label": {
+      "main": [
+        [
+          {
+            "node": "Needs Draft Reply?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Aggregate All Emails",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs Draft Reply?": {
+      "main": [
+        [
+          {
+            "node": "Generate Draft Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Draft Reply": {
+      "main": [
+        [
+          {
+            "node": "Save Draft to Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft Reply Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Draft Reply",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate All Emails": {
+      "main": [
+        [
+          {
+            "node": "Create Daily Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Daily Digest": {
+      "main": [
+        [
+          {
+            "node": "Send Daily Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "pinData": {},
+  "triggerCount": 0,
+  "meta": null
+}
