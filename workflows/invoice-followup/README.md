@@ -73,17 +73,10 @@ No manual writing. No awkward conversations. No invoices slipping through the cr
 ## Screenshots
 
 ### Full Workflow Canvas
-![Workflow Canvas](./screenshots/canvas.png)
-
-### Groq AI Node — Email Generation Output
-![AI Node Output](./screenshots/ai-node.png)
+![Workflow Canvas](<img width="1918" height="822" alt="sheet png" src="https://github.com/user-attachments/assets/ff6a0997-8d67-4d87-8c48-f3655e391434" />)
 
 ### Google Sheets — Invoice Tracker
-![Google Sheets](./screenshots/sheet.png)
-
-### Gmail — Auto-Sent Follow-Up Email
-![Email Output](./screenshots/email-output.png)
-
+![Google Sheets](<img width="1919" height="811" alt="canvas png" src="https://github.com/user-attachments/assets/ab2f58db-b17b-4dfb-ace7-f7559f9a9d96" />)
 ---
 
 ## How to Use This Workflow
@@ -107,7 +100,6 @@ No manual writing. No awkward conversations. No invoices slipping through the cr
 | `screenshots/ai-node.png` | Groq AI node output |
 | `screenshots/sheet.png` | Google Sheets tracker |
 | `screenshots/email-output.png` | Sample generated email |
-
 ---
 
 *Built with n8n · Powered by Groq AI · Part of the Ameerah Lawal Automation Portfolio*
